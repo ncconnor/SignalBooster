@@ -48,7 +48,7 @@ This structure enables easy testing (with mocks), future support for new note fo
   - Making the API endpoint and authentication configurable.
   - Accepting multiple input formats (e.g., JSON-wrapped notes).
 
-## How to Run the SignalBooster Program
+## How to Run the SignalBooster Unit Tests
 
 1. **Restore dependencies:**  
    Run `dotnet restore` in the SignalBooster project directory.
