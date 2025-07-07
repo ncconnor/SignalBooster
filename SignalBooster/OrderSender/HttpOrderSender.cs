@@ -3,10 +3,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Synapse.SignalBoosterExample.OrderSender
 {
-
     public class HttpOrderSender : IOrderSender
     {
         private readonly ILogger _logger;
+
+        private const string SubmittingOrderMessage = "Submitting order to API";
+        private const string SuccessMessage = "Successfully submitted order to API";
+        private const string FailedMessage = "Failed to submit order to API";
+        private const string MediaTypeJson = "application/json";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OrderSender"/> class.
@@ -25,19 +29,19 @@ namespace Synapse.SignalBoosterExample.OrderSender
         {
             try
             {
-                _logger.LogDebug("Submitting order to API");
+                _logger.LogDebug(SubmittingOrderMessage);
 
                 using var httpClient = new HttpClient();
-                var content = new StringContent(orderJson, Encoding.UTF8, "application/json");
+                var content = new StringContent(orderJson, Encoding.UTF8, MediaTypeJson);
 
                 var response = httpClient.PostAsync(apiUrl, content).GetAwaiter().GetResult();
                 response.EnsureSuccessStatusCode();
 
-                _logger.LogDebug("Successfully submitted order to API");
+                _logger.LogDebug(SuccessMessage);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to submit order to API");
+                _logger.LogError(ex, FailedMessage);
                 throw;
             }
         }

@@ -22,16 +22,21 @@ namespace Synapse.SignalBoosterExample
     public class SignalBooster
     {
         private readonly ILogger<SignalBooster> _logger;
-
         private readonly IOrderSender _orderSender;
-
         private readonly IPhysicianNoteOrderProcessor _orderProcessor;
-
         private readonly IPhysicianNoteReader _physicianNoteReader;
-
         private readonly string _noteContentType;
         private readonly string _noteFilePath;
-        private readonly string _apiUrl;    
+        private readonly string _apiUrl;
+
+        private const string InitializedMessage = "SignalBooster initialized";
+        private const string StartProcessingMessage = "Starting physician note processing";
+        private const string NoNoteWarningMessage = "No physician note content available";
+        private const string NoOrderWarningMessage = "No valid order could be extracted from the physician note";
+        private const string ParsedOrderMessage = "Parsed order details: {OrderJson}";
+        private const string SubmittingOrderMessage = "Submitting order to API: {ApiUrl}";
+        private const string SuccessMessage = "Successfully processed physician note";
+        private const string FailureMessage = "Failed to process physician note";
 
         private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
@@ -53,52 +58,48 @@ namespace Synapse.SignalBoosterExample
             if (orderProcessor == null) throw new ArgumentNullException(nameof(orderProcessor));
             _orderProcessor = orderProcessor;
 
-            
             if (physicianNoteReader == null) throw new ArgumentNullException(nameof(physicianNoteReader));
             _physicianNoteReader = physicianNoteReader;
-            
+
             if (orderSender == null) throw new ArgumentNullException(nameof(orderSender));
             _orderSender = orderSender;
 
-
             _apiUrl = apiUrl;
 
-            _logger.LogInformation("SignalBooster initialized");
-
+            _logger.LogInformation(InitializedMessage);
         }
-
 
         public void ProcessAndSubmitPhysicianNote()
         {
             try
             {
-                _logger.LogInformation("Starting physician note processing");
+                _logger.LogInformation(StartProcessingMessage);
 
                 string physicianNote = _physicianNoteReader.ReadPhysicianNote();
                 if (string.IsNullOrEmpty(physicianNote))
                 {
-                    _logger.LogWarning("No physician note content available");
+                    _logger.LogWarning(NoNoteWarningMessage);
                     return;
                 }
 
                 MedicalOrder order = _orderProcessor.Parse(physicianNote);
                 if (order == null)
                 {
-                    _logger.LogWarning("No valid order could be extracted from the physician note");
+                    _logger.LogWarning(NoOrderWarningMessage);
                     return;
                 }
 
                 var orderJson = JsonSerializer.Serialize(order, _jsonOptions);
-                _logger.LogInformation("Parsed order details: {OrderJson}", orderJson);
+                _logger.LogInformation(ParsedOrderMessage, orderJson);
 
-                _logger.LogInformation("Submitting order to API: {ApiUrl}", _apiUrl);
+                _logger.LogInformation(SubmittingOrderMessage, _apiUrl);
                 _orderSender.Submit(orderJson, _apiUrl);
 
-                _logger.LogInformation("Successfully processed physician note");
+                _logger.LogInformation(SuccessMessage);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process physician note");
+                _logger.LogError(ex, FailureMessage);
             }
         }
     }

@@ -17,6 +17,9 @@ namespace Synapse.SignalBoosterExample
     /// </summary>
     class Program
     {
+        private const string StartMessage = "Starting SignalBooster application";
+        private const string UsageErrorMessage = "Usage: Program <filePath> <type>";
+        private const string ApiUrl = "https://api.example.com/submit-order";
 
         static int Main(string[] args)
         {
@@ -27,14 +30,13 @@ namespace Synapse.SignalBoosterExample
                 builder.SetMinimumLevel(LogLevel.Information);
             });
 
-
             ILogger<Program> _logger = loggerFactory.CreateLogger<Program>();
-            _logger.LogInformation("Starting SignalBooster application");
+            _logger.LogInformation(StartMessage);
 
             // Use a specific source path for the test file
             if (args.Length < 2)
             {
-                _logger.LogError("Usage: Program <filePath> <type>");
+                _logger.LogError(UsageErrorMessage);
                 return 1;
             }
 
@@ -54,14 +56,13 @@ namespace Synapse.SignalBoosterExample
                 orderProcessor,
                 orderSender,
                 physicianNoteReader,
-                apiUrl: "https://api.example.com/submit-order"
+                apiUrl: ApiUrl
             );
 
             signalBooster.ProcessAndSubmitPhysicianNote();
             
-             return 0;
+            return 0;
         }
     }
 }
 
-        

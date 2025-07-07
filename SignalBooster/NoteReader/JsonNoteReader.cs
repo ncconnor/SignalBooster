@@ -13,6 +13,8 @@ namespace Synapse.SignalBoosterExample.NoteReader
     /// </summary>
     public class JsonNoteReader : IPhysicianNoteReader
     {
+        private const string DataField = "data";
+
         private readonly string _filePath;
         private readonly ILogger _logger;
 
@@ -28,7 +30,7 @@ namespace Synapse.SignalBoosterExample.NoteReader
             {
                 string jsonContent = File.ReadAllText(_filePath);
                 JObject jsonObject = JObject.Parse(jsonContent);
-                return jsonObject["data"]?.ToString();
+                return jsonObject[DataField]?.ToString();
             }
             catch (Exception ex)
             {

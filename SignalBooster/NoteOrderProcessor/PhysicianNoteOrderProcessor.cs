@@ -9,7 +9,21 @@ namespace Synapse.SignalBoosterExample.NoteOrderProcessor
     /// </summary>
     public class PhysicianNoteOrderProcessor : IPhysicianNoteOrderProcessor
     {
-
+        // String constants for device types and keywords
+        private const string DeviceCpap = "CPAP";
+        private const string DeviceOxygenTank = "Oxygen Tank";
+        private const string DeviceWheelchair = "Wheelchair";
+        private const string DeviceUnknown = "Unknown";
+        private const string MaskTypeFullFace = "full face";
+        private const string AddOnHumidifier = "humidifier";
+        private const string QualifierAhi = "AHI > 20";
+        private const string ProviderPrefix = "Dr.";
+        private const string ProviderOrderedBy = "Ordered by ";
+        private const string OxygenLitersPattern = @"(\d+(\.\d+)?) ?L";
+        private const string UsageSleep = "sleep";
+        private const string UsageExertion = "exertion";
+        private const string UsageSleepAndExertion = "sleep and exertion";
+        private const string ProviderUnknown = "Unknown";
 
         /// <summary>
         /// Parses physician note text to extract order details using PhysicianNoteOrderProcessor
@@ -36,17 +50,17 @@ namespace Synapse.SignalBoosterExample.NoteOrderProcessor
             var order = new MedicalOrder
             {
                 Device = deviceType,
-                MaskType = deviceType == "CPAP" && noteText.Contains("full face", StringComparison.OrdinalIgnoreCase)
-                    ? "full face"
+                MaskType = deviceType == DeviceCpap && noteText.Contains(MaskTypeFullFace, StringComparison.OrdinalIgnoreCase)
+                    ? MaskTypeFullFace
                     : null,
-                AddOns = noteText.Contains("humidifier", StringComparison.OrdinalIgnoreCase)
-                    ? new[] { "humidifier" }
+                AddOns = noteText.Contains(AddOnHumidifier, StringComparison.OrdinalIgnoreCase)
+                    ? new[] { AddOnHumidifier }
                     : Array.Empty<string>(),
-                Qualifier = noteText.Contains("AHI > 20") ? "AHI > 20" : "",
+                Qualifier = noteText.Contains(QualifierAhi) ? QualifierAhi : "",
                 OrderingProvider = ExtractOrderingProvider(noteText)
             };
 
-            if (deviceType == "Oxygen Tank")
+            if (deviceType == DeviceOxygenTank)
             {
                 order.Liters = ExtractOxygenLiters(noteText);
                 order.Usage = DetectOxygenUsage(noteText);
@@ -61,10 +75,10 @@ namespace Synapse.SignalBoosterExample.NoteOrderProcessor
         /// </summary>
         private string DetectDeviceType(string noteText)
         {
-            if (noteText.Contains("CPAP", StringComparison.OrdinalIgnoreCase)) return "CPAP";
-            if (noteText.Contains("oxygen", StringComparison.OrdinalIgnoreCase)) return "Oxygen Tank";
-            if (noteText.Contains("wheelchair", StringComparison.OrdinalIgnoreCase)) return "Wheelchair";
-            return "Unknown";
+            if (noteText.Contains(DeviceCpap, StringComparison.OrdinalIgnoreCase)) return DeviceCpap;
+            if (noteText.Contains("oxygen", StringComparison.OrdinalIgnoreCase)) return DeviceOxygenTank;
+            if (noteText.Contains(DeviceWheelchair, StringComparison.OrdinalIgnoreCase)) return DeviceWheelchair;
+            return DeviceUnknown;
         }
 
         /// <summary>
@@ -72,12 +86,12 @@ namespace Synapse.SignalBoosterExample.NoteOrderProcessor
         /// </summary>
         private string ExtractOrderingProvider(string noteText)
         {
-            int idx = noteText.IndexOf("Dr.");
+            int idx = noteText.IndexOf(ProviderPrefix);
             if (idx >= 0)
             {
-                return noteText.Substring(idx).Replace("Ordered by ", "").Trim('.');
+                return noteText.Substring(idx).Replace(ProviderOrderedBy, "").Trim('.');
             }
-            return "Unknown";
+            return ProviderUnknown;
         }
 
         /// <summary>
@@ -85,7 +99,7 @@ namespace Synapse.SignalBoosterExample.NoteOrderProcessor
         /// </summary>
         private string? ExtractOxygenLiters(string noteText)
         {
-            Match match = Regex.Match(noteText, @"(\d+(\.\d+)?) ?L", RegexOptions.IgnoreCase);
+            Match match = Regex.Match(noteText, OxygenLitersPattern, RegexOptions.IgnoreCase);
             return match.Success ? match.Groups[1].Value + " L" : null;
         }
 
@@ -94,15 +108,15 @@ namespace Synapse.SignalBoosterExample.NoteOrderProcessor
         /// </summary>
         private string DetectOxygenUsage(string noteText)
         {
-            if (noteText.Contains("sleep", StringComparison.OrdinalIgnoreCase) &&
-                noteText.Contains("exertion", StringComparison.OrdinalIgnoreCase))
-                return "sleep and exertion";
+            if (noteText.Contains(UsageSleep, StringComparison.OrdinalIgnoreCase) &&
+                noteText.Contains(UsageExertion, StringComparison.OrdinalIgnoreCase))
+                return UsageSleepAndExertion;
 
-            if (noteText.Contains("sleep", StringComparison.OrdinalIgnoreCase))
-                return "sleep";
+            if (noteText.Contains(UsageSleep, StringComparison.OrdinalIgnoreCase))
+                return UsageSleep;
 
-            if (noteText.Contains("exertion", StringComparison.OrdinalIgnoreCase))
-                return "exertion";
+            if (noteText.Contains(UsageExertion, StringComparison.OrdinalIgnoreCase))
+                return UsageExertion;
 
             return string.Empty;
         }

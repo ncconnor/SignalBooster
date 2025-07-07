@@ -7,6 +7,10 @@ namespace Synapse.SignalBoosterExample.NoteReader
     /// </summary>
     public static class PhysicianNoteReaderFactory
     {
+        private const string JsonType = "json";
+        private const string TextType = "text";
+        private const string UnknownTypeMessage = "Unknown physician note reader type: {0}";
+
         /// <summary>
         /// Creates a new instance of IPhysicianNoteReader based on the specified type.
         /// </summary>
@@ -17,9 +21,9 @@ namespace Synapse.SignalBoosterExample.NoteReader
         {
             return type switch
             {
-                "json" => new JsonNoteReader(filePath, logger),
-                "text" => new TextFileNoteReader(filePath, logger),
-                _ => throw new ArgumentException($"Unknown physician note reader type: {type}")
+                JsonType => new JsonNoteReader(filePath, logger),
+                TextType => new TextFileNoteReader(filePath, logger),
+                _ => throw new ArgumentException(string.Format(UnknownTypeMessage, type))
             };
         }
     }
